@@ -31,7 +31,7 @@ class Generator
   end
 
   def get_artist_name
-    html = fetch_url("http://en.wikipedia.org/wiki/Special:Random")
+    html = fetch_url("https://en.wikipedia.org/wiki/Special:Random")
 
     @artist_name = html.css("#firstHeading").last.text
   rescue
@@ -39,18 +39,19 @@ class Generator
   end
 
   def get_album_artwork
-    html = fetch_url("https://www.flickr.com/explore/interesting/7days")
-    user_url = "https://www.flickr.com" + html.css(".Photo")[2].children.xpath("a").last.values[1] + "sizes/o"
-    html2 = fetch_url(user_url)
+    html        = fetch_url("https://www.flickr.com/explore/interesting/7days")
+    user_url    = "https://www.flickr.com" + html.css(".Photo")[2].children.xpath("a").last.values[1] + "sizes/o"
+    html2       = fetch_url(user_url)
     artwork_url = html2.css("#allsizes-photo").last.children.css("img").attribute("src").value
-    image = MiniMagick::Image.open(artwork_url)
+    image       = MiniMagick::Image.open(artwork_url)
     image.crop "1600x1600"
     @artwork_file = "artwork.jpg"
-    image.write(artwork_file)
 
+    image.write(artwork_file)
   end
 
   def fetch_url(url)
     Nokogiri::HTML(open(url))
   end
 end
+

@@ -1,14 +1,11 @@
 require "album_generator/version"
 require "album_generator/generator"
+require "album_generator/cli"
 
-module AlbumGenerator::CLI < Thor
-
-  desc "generate", "will output random album details"
-  def generate
-    @generated = Generator.generate
-
-    puts "Artist Name:  #{@generated.artist_name}"
-    puts "Album Title:  #{@generated.album_title}"
-    puts "Artwork File: #{@generated.artwork_file}"
+module AlbumGenerator
+  class Base
+    def self.start
+      AlbumGenerator::CLI.start
+    end
   end
 end
