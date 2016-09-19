@@ -4,11 +4,23 @@ require 'open-uri'
 require 'mini_magick'
 
 class Generator
+  class GeneratorException < StandardError; end
+
   def self.generate
     generated = new
     generated.generate
 
     generated
+  end
+
+  @@title_retry_limit   = 5
+  @@name_retry_limit    = 5
+  @@artwork_retry_limit = 5
+
+  def initialize
+    @title_retry   = 0
+    @name_retry    = 0
+    @artwork_retry = 0
   end
 
   def generate
@@ -27,7 +39,7 @@ class Generator
 
     @album_title = quote[(quote.length - 5)..-1].map(&:capitalize).join(" ")
   rescue
-    puts "error generating album text"
+    handle_exception(@title_retry += 1, @@title_retry_limit, :get_album_title)
   end
 
   def get_artist_name
@@ -35,7 +47,7 @@ class Generator
 
     @artist_name = html.css("#firstHeading").last.text
   rescue
-    puts "error generating artist name"
+    handle_exception(@name_retry += 1, @@name_retry_limit, :get_artist_name)
   end
 
   def get_album_artwork
@@ -48,10 +60,22 @@ class Generator
     @artwork_file = "artwork.jpg"
 
     image.write(artwork_file)
+  rescue
+    handle_exception(@artwork_retry += 1, @@artwork_retry_limit, :get_album_artwork)
   end
+
+  private
 
   def fetch_url(url)
     Nokogiri::HTML(open(url))
+  end
+
+  def handle_exception(retry_count, retry_limit, callback)
+    if retry_count > retry_limit
+      raise GeneratorException.new "unable to perform #{callback}"
+    else
+      send(callback)
+    end
   end
 end
 
