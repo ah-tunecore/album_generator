@@ -13,9 +13,9 @@ class Generator
     generated
   end
 
-  @@title_retry_limit   = 5
-  @@name_retry_limit    = 5
-  @@artwork_retry_limit = 5
+  @@title_retry_limit   = 10
+  @@name_retry_limit    = 10
+  @@artwork_retry_limit = 10
 
   def initialize
     @title_retry   = 0
@@ -38,16 +38,16 @@ class Generator
     quote = html.css(".quote").last.text.split("\s")
 
     @album_title = quote[(quote.length - 5)..-1].map(&:capitalize).join(" ")
-  rescue
-    handle_exception(@title_retry += 1, @@title_retry_limit, :get_album_title)
+  rescue => e
+    handle_exception(e, @title_retry += 1, @@title_retry_limit, :get_album_title)
   end
 
   def get_artist_name
     html = fetch_url("https://en.wikipedia.org/wiki/Special:Random")
 
     @artist_name = html.css("#firstHeading").last.text
-  rescue
-    handle_exception(@name_retry += 1, @@name_retry_limit, :get_artist_name)
+  rescue => e
+    handle_exception(e, @name_retry += 1, @@name_retry_limit, :get_artist_name)
   end
 
   def get_album_artwork
@@ -56,12 +56,13 @@ class Generator
     html2       = fetch_url(user_url)
     artwork_url = html2.css("#allsizes-photo").last.children.css("img").attribute("src").value
     image       = MiniMagick::Image.open(artwork_url)
-    image.crop "1600x1600"
-    @artwork_file = "artwork.jpg"
-
+    image.combine_options do |b|
+      b.resize "1600x1600!"
+    end
+    @artwork_file = "/tmp/artwork.jpg"
     image.write(artwork_file)
-  rescue
-    handle_exception(@artwork_retry += 1, @@artwork_retry_limit, :get_album_artwork)
+  rescue => e
+    handle_exception(e, @artwork_retry += 1, @@artwork_retry_limit, :get_album_artwork)
   end
 
   private
@@ -70,9 +71,9 @@ class Generator
     Nokogiri::HTML(open(url))
   end
 
-  def handle_exception(retry_count, retry_limit, callback)
+  def handle_exception(error, retry_count, retry_limit, callback)
     if retry_count > retry_limit
-      raise GeneratorException.new "unable to perform #{callback}"
+      raise GeneratorException.new "unable to perform #{callback}: #{error.message}"
     else
       send(callback)
     end
