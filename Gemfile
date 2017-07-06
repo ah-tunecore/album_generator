@@ -4,3 +4,4 @@ source 'https://rubygems.org'
 gemspec
 
 gem "thor"
+gem "mini_magick"
