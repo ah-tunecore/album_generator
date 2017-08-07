@@ -1,45 +1,52 @@
 require 'nokogiri'
-require 'pry'
 require 'open-uri'
 require 'mini_magick'
 
 class Generator
   class GeneratorException < StandardError; end
 
-  def self.generate
-    generated = new
-    generated.generate
-
-    generated
+  def self.generate(song_count = 5)
+    new(song_count).tap(&:generate)
   end
 
   @@title_retry_limit   = 10
   @@name_retry_limit    = 10
   @@artwork_retry_limit = 10
 
-  def initialize
+  def initialize(song_count)
     @title_retry   = 0
     @name_retry    = 0
     @artwork_retry = 0
+    @song_retry    = 0
+    @song_count    = song_count
+    @song_names    = []
   end
 
   def generate
     get_album_title
     get_artist_name
     get_album_artwork
+    get_song_names
   end
 
-  attr_reader :album_title, :artist_name, :artwork_file
+  attr_reader :album_title, :artist_name, :artwork_file, :song_names
 
   private
 
-  def get_album_title
+  def random_quote
     html = fetch_url("http://www.quotationspage.com/random.php3")
-    quote = html.css(".quote").last.text.split("\s")
+    q = html.css(".quote").last.text.split("\s")
+    q[(q.length - 5)..-1].map(&:capitalize).join(" ")
+  end
 
-    @album_title = quote[(quote.length - 5)..-1].map(&:capitalize).join(" ")
+  def get_album_title
+    @album_title = random_quote
   rescue => e
     handle_exception(e, @title_retry += 1, @@title_retry_limit, :get_album_title)
+  end
+
+  def get_song_names
+    (1..@song_count).each {|i| @song_names << random_quote }
   end
 
   def get_artist_name
