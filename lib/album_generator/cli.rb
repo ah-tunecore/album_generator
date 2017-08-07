@@ -4,7 +4,7 @@ require "album_generator/generator"
 
 class AlbumGenerator::CLI < Thor
   desc "generate", "Generate a new album"
-  def generate
+  def generate(song_count = 5)
     @generated = Generator.generate(song_count)
 
     puts "Album Title:  #{@generated.album_title}"
