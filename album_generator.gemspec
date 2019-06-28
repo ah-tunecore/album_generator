@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "album_generator"
   spec.version       = AlbumGenerator::VERSION
   spec.authors       = ["Andrew Hoglund"]
-  spec.email         = ["ahoglund@tunecore.com"]
+  spec.email         = ["andrew@andrewhoglund.com"]
 
   spec.summary       = %q{Generate random album title, artist, and artwork.}
   spec.description   = %q{The logic for this gem is based on the rules from: http://www.noiseaddicts.com/2009/03/random-band-name-cover-album/}
-  spec.homepage      = "http://github.com/ah-tunecore"
+  spec.homepage      = "http://github.com/andrewhoglund"
   spec.license       = "MIT"
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.executables   = %w{album_generator}
